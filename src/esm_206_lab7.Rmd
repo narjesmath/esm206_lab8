@@ -1,0 +1,136 @@
+---
+title: "Untitled"
+author: "Narjes Mathlouthi"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(modelsummary)
+library(corrplot)
+library(broom)
+library(here)
+```
+
+### Read in slo_homes.csv
+
+```{r}
+homes <- read_csv(here("data","slo_homes.csv"))
+#think about the relationships you expect to exist
+# home price sign 
+#unique(homes$City)
+```
+
+### Create a subset with 4 cities
+
+Task: create a subset (called homes_subset) that only contains observations where the city is:
+
+- "San luis Obispo"
+- "Atascadero"
+- "Arroyo Grande"
+- "Santa Maria-Orcutt"
+
+```{r}
+homes_subset <- homes %>% 
+  filter(City %in% c("San Luis Obispo","Atascadero","Arroyo Grande", "Santa Maria-Orcutt"))
+
+# if you use == it will look at elements (observations)in a column one by one in the order listed in the vector 
+#check what the code is doing or your results
+
+#unique(homes_subset$City)
+```
+
+
+###
+
+```{r, include = FALSE, eval=FALSE}
+
+homes_table <- homes_subset %>% 
+  group_by(City, Status) %>% 
+  summarize(
+    mean_price = mean(Price),
+    sd_price = sd(Price),
+    mean_sqft = mean(PricePerSqFt),
+    sample_size = n()
+    )
+homes_table
+
+# eval=FALSE complete doesn't run the code at all/ include = FALSE is still running the code
+
+```
+
+Task: explore the relationship between square footage and home price(from homes_subset) in a scatterplot
+
+```{r}
+ggplot(data = homes_subset, aes(x = SqFt , y = Price)) +
+  geom_point() +
+  #to add abline to see
+  geom_smooth(method ="lm")
+         
+#initial takeaway : linear relationship with positive correlation
+#The outlier of 5M missing vars such as how big is the land or other #characteristics that could explain the outlier 
+#Think about what might explain the outlier (data point) & dont get rid of it.
+#Pretty large sample that's dominating (n =400) compare to 1 outlier 
+# We expect larger houses to have higher sales 
+# We can get a better sense of how the vars that we do have do relate even though we re missing important vars suchas property size and home age
+```
+
+### Try a few linear models
+
+Use multiple linear regression to investigate relationships between several predictator vars and home Price, using home_subset
+
+Create 2 different permutations of this model:
+(1) Price ~ City, Bedrooms, Bathrooms, SqFt, Status (lm1)
+(2) Price ~ City, SqFt, Status (lm2)
+(3) Try another one (lm3)
+
+For Santa Maria Orcutt: 
+If the homes are otherwise similar, I would expect that homes in Santa Maria Orcutt would be on average 260860.77 
+
+```{r}
+#Bedrooms is a continous var. In model 1,  as bathrooms # increases price decreases
+#A*****djusted R-squared meaning =>  53% (how much of the variance in the dependent variable) of home price is explained by the vars in the model. 
+
+# TESTING THE NULL hypothesis of testing 
+
+
+model1 <- lm(Price ~ City + Bedrooms + Bathrooms +SqFt + Status, data = homes_subset)
+model2 <- lm(Price ~ City + SqFt + Status, data = homes_subset )
+model3 <- lm(Price ~ City + SqFt + Status + Bathrooms, data = homes_subset)
+
+#If I wanted San Luis Obispo to be the reference level:
+#Use fct_relevel to specify a new reference level
+
+new_homes_subset <- homes_subset %>% 
+  mutate(City =fct_relevel(City, "San Luis Obispo"))
+# this will make slo teh reference level
+lm_slo <- lm(Price ~ SqFt + City, data = homes_subset)
+
+summary(model1)
+
+
+
+```
+
+
+### Explore correlations between quantitative variables 
+
+Task : make a subset called homes_quant(starting from homes_subset) that only contains vars from Price through SqFT
+
+```{r}
+homes_quant <-  homes_subset %>% 
+  select(Price:SqFt)
+
+#Check the colinearity of the vars
+# SQqFT has the highest correlation
+homes_cor <- cor(homes_quant)
+
+corrplot(homes_cor, method="ellipse")
+
+
+
+```
+
+
+
