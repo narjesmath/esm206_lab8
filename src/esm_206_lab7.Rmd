@@ -128,9 +128,54 @@ homes_cor <- cor(homes_quant)
 
 corrplot(homes_cor, method="ellipse")
 
-
+summary(model2)
 
 ```
+### Compare AIC values
+
+
+
+
+```{r}
+AIC(model1)
+AIC(model2)
+AIC(model3)
+
+#lower AIC is better
+```
+
+
+### Use modelsummary() to return multiple model outputs
+
+```{r}
+modelsummary(list(model1,model2,model3))
+
+#SqFT stays pretty close 
+```
+
+### Check out diagnostic plots
+
+```{r}
+
+plot(model1)
+
+#3rd plot is position in teh data frame
+#cook's distance plot 
+```
+
+
+
+### Use broom::augment() to return the predictions for existing observations
+
+```{r}
+home_predictions <- augment(model1)
+# Make a histogram of the residuals from thsi model
+ggplot(data = home_predictions, aes(x= .resid)) +
+  geom_histogram()
+# follows a normal distributions
+```
+
+
 
 
 
