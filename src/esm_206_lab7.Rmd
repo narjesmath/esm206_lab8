@@ -175,7 +175,7 @@ ggplot(data = home_predictions, aes(x= .resid)) +
 # follows a normal distributions
 ```
 
-
+# Branches are awesome
 
 
 
